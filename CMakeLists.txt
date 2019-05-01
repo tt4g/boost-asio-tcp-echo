@@ -44,6 +44,12 @@ target_compile_options(BoostAsioTcpEcho
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:${MSVC_VERSION},1900>>:/permissive->
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic -Werror>
 )
+# Boost.Asio
+# Disable autolink: https://www.boost.org/doc/libs/1_70_0/doc/html/boost_asio/using.html#boost_asio.using.dependencies
+target_compile_definitions(BoostAsioTcpEcho
+  PUBLIC
+    $<$<CXX_COMPILER_ID:MSVC>:BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB>
+)
 
 # Fixes MSVC 2017 warning bug: https://github.com/boostorg/asio/issues/109
 target_compile_definitions(BoostAsioTcpEcho
