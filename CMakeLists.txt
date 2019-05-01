@@ -28,22 +28,32 @@ conan_cmake_run(
 
 add_executable(BoostAsioTcpEcho
   src/main.cpp
+  src/client/ClientLayer.cpp
+  src/client/ConnectCommand.cpp
+  src/client/ReadCommand.cpp
+  src/client/ResolveCommand.cpp
+  src/client/Settings.cpp
+  src/client/WriteCommand.cpp
 )
+
 target_include_directories(BoostAsioTcpEcho
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #    $<INSTALL_INTERFACE:include/mylib>
 )
+
 target_link_libraries(BoostAsioTcpEcho
   PUBLIC
     CONAN_PKG::boost
 )
+
 target_compile_options(BoostAsioTcpEcho
   PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/Wall /W4>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:${MSVC_VERSION},1900>>:/permissive->
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic -Werror>
 )
+
 # Boost.Asio
 # Disable autolink: https://www.boost.org/doc/libs/1_70_0/doc/html/boost_asio/using.html#boost_asio.using.dependencies
 target_compile_definitions(BoostAsioTcpEcho
