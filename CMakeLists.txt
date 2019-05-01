@@ -44,3 +44,9 @@ target_compile_options(BoostAsioTcpEcho
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:${MSVC_VERSION},1900>>:/permissive->
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic -Werror>
 )
+
+# Fixes MSVC 2017 warning bug: https://github.com/boostorg/asio/issues/109
+target_compile_definitions(BoostAsioTcpEcho
+  PUBLIC
+    $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:${MSVC_VERSION},1900>>:_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING>
+)
