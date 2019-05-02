@@ -54,7 +54,8 @@ void ReceiveCommand::handleTimeout(
         const boost::system::error_code &ec)
 {
     if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
-        socket->cancel();
+        boost::system::error_code cancelEc;
+        socket->cancel(cancelEc);
     }
 
     if (ec) {
