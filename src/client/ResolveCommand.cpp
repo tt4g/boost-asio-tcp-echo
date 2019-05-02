@@ -35,7 +35,7 @@ void ResolveCommand::run(
             std::bind(&ResolveCommand::handleTimeout, self, resolver, deadLineTimer,
                       std::placeholders::_1));
 
-    resolver->async_resolve(this->settings_->getHost(), "",
+    resolver->async_resolve(this->settings_->getHost(), std::to_string(this->settings_->getPort()),
             std::bind(&ResolveCommand::handleResolve, self, std::move(callback),
                       deadLineTimer, std::placeholders::_1, std::placeholders::_2));
 }
