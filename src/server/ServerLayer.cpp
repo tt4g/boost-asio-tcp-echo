@@ -99,6 +99,11 @@ void ServerLayer::onAccept(
         std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         const boost::system::error_code &ec)
 {
+    if (ec == boost::asio::error::operation_aborted) {
+        // If call `stop()` or `boost::asio::io_context::stop()` ...
+        return;
+    }
+
     if (ec) {
         std::cout << "ServerLayer::onAccept: " << ec.message() << std::endl;
     } else {
