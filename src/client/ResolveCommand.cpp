@@ -45,6 +45,11 @@ void ResolveCommand::handleTimeout(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
 {
+    if (ec == boost::asio::error::operation_aborted) {
+        // Timer canceled
+        return;
+    }
+
     // There are times when timer cancellation does not make sense.
     // That's when function call task is already queued.
     // Workaround: double check "why call this function reason" ?
