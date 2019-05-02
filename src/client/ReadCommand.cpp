@@ -72,7 +72,12 @@ void ReadCommand::handleRead(
         const boost::system::error_code &ec,
         std::size_t /* bytesReceived */)
 {
-    if (ec) {
+    if (ec == boost::asio::error::connection_reset) {
+        std::cout << "ReadCommand::handleRead connection reset: " << ec.message() << std::endl;
+        return;
+    }
+
+    if (ec != boost::asio::error::eof && ec) {
         std::cout << "ReadCommand::handleRead: " << ec.message() << std::endl;
 
         return;

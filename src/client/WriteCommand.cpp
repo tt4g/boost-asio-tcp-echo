@@ -51,6 +51,11 @@ void WriteCommand::handleTimeout(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
 {
+    if (ec == boost::asio::error::operation_aborted) {
+        // Timer canceled
+        return;
+    }
+
     if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
         boost::system::error_code cancelEc;
         socket->cancel(cancelEc);
