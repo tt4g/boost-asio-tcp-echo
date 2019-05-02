@@ -51,7 +51,7 @@ void ClientLayer::onResolve(
         std::string body,
         boost::asio::ip::tcp::resolver::results_type endpoints)
 {
-    std::cout << "resolved!" << std::endl;
+    std::cout << "ClientLayer resolved!" << std::endl;
 
     for (auto endpoint_ : endpoints) {
         std::cout << endpoint_.endpoint() << std::endl;
@@ -74,6 +74,8 @@ void ClientLayer::onConnect(
         std::string body,
         std::shared_ptr<boost::asio::ip::tcp::socket> socket)
 {
+    std::cout << "ClientLayer connected!" << std::endl;
+
     auto self = this->shared_from_this();
 
     auto writeCommand =
@@ -107,7 +109,12 @@ void ClientLayer::onRead(
 {
     promise->set_value(std::move(response));
 
-    socket->close();
+    boost::system::error_code ec;
+    socket->close(ec);
+    if (ec)
+    {
+        std::cout << "ClientLayer::onRead: " << ec.message() << std::endl;
+    }
 }
 
 } // namespace boost_asio_tcp_echo

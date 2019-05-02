@@ -69,7 +69,7 @@ void ConnectCommand::handleConnect(
         const boost::asio::ip::tcp::endpoint &/* endpoint */)
 {
     if (ec) {
-        std::cout << "ConnectCommand::handleResolve: " << ec.message() << std::endl;
+        std::cout << "ConnectCommand::handleConnect: " << ec.message() << std::endl;
 
         return;
     }

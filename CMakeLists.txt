@@ -34,6 +34,10 @@ add_executable(BoostAsioTcpEcho
   src/client/ResolveCommand.cpp
   src/client/Settings.cpp
   src/client/WriteCommand.cpp
+  src/server/ReceiveCommand.cpp
+  src/server/ResponseCommand.cpp
+  src/server/ServerLayer.cpp
+  src/server/Settings.cpp
 )
 
 target_include_directories(BoostAsioTcpEcho

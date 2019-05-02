@@ -1,4 +1,4 @@
-#include "client/ReadCommand.hpp"
+#include "server/ReceiveCommand.hpp"
 
 #include <boost/asio/completion_condition.hpp>
 #include <boost/asio/read.hpp>
@@ -10,10 +10,10 @@
 
 namespace boost_asio_tcp_echo
 {
-namespace client
+namespace server
 {
 
-ReadCommand::ReadCommand(
+ReceiveCommand::ReceiveCommand(
         boost::asio::io_context &ioContext,
         std::shared_ptr<Settings> settings,
         std::shared_ptr<boost::asio::ip::tcp::socket> socket)
@@ -24,12 +24,12 @@ ReadCommand::ReadCommand(
 
 }
 
-ReadCommand::~ReadCommand()
+ReceiveCommand::~ReceiveCommand()
 {
 
 }
 
-void ReadCommand::run(
+void ReceiveCommand::run(
         std::function<void(std::string, std::shared_ptr<boost::asio::ip::tcp::socket>)> callback)
 {
     auto self = this->shared_from_this();
@@ -37,33 +37,32 @@ void ReadCommand::run(
     auto receiveBuffer =
             std::make_shared<boost::asio::streambuf>(std::numeric_limits<std::size_t>::max());
 
-    deadLineTimer->expires_after(this->settings_->getReadTimeout());
+    deadLineTimer->expires_after(this->settings_->getRequestReadTimeout());
     deadLineTimer->async_wait(
-            std::bind(&ReadCommand::handleTimeout, self, this->socket_, deadLineTimer,
+            std::bind(&ReceiveCommand::handleTimeout, self, this->socket_, deadLineTimer,
                       std::placeholders::_1));
 
     boost::asio::async_read(*(this->socket_), *receiveBuffer, boost::asio::transfer_at_least(1),
-            std::bind(&ReadCommand::handleRead, self, std::move(callback),
+            std::bind(&ReceiveCommand::handleRead, self, std::move(callback),
                      this->socket_, deadLineTimer, receiveBuffer,
                      std::placeholders::_1, std::placeholders::_2));
 }
 
-void ReadCommand::handleTimeout(
+void ReceiveCommand::handleTimeout(
         const std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
-
 {
     if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
         socket->cancel();
     }
 
     if (ec) {
-        std::cout << "ReadCommand::handleTimeout: " << ec.message() << std::endl;
+        std::cout << "ReceiveCommand::handleTimeout: " << ec.message() << std::endl;
     }
 }
 
-void ReadCommand::handleRead(
+void ReceiveCommand::handleRead(
         std::function<void(std::string, std::shared_ptr<boost::asio::ip::tcp::socket>)> callback,
         std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
@@ -81,11 +80,11 @@ void ReadCommand::handleRead(
             boost::asio::steady_timer::time_point::max());
     deadLineTimer->cancel();
 
-    std::string response(
+    std::string requestBody(
             (std::istreambuf_iterator<char>(receiveBuffer.get())),
             std::istreambuf_iterator<char>());
-    callback(std::move(response), std::move(socket));
+    callback(std::move(requestBody), std::move(socket));
 }
 
+} // namespace server
 } // namespace boost_asio_tcp_echo
-} // namespace client

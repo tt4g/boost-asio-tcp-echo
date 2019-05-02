@@ -1,4 +1,4 @@
-#include "client/WriteCommand.hpp"
+#include "server/ResponseCommand.hpp"
 
 #include <boost/asio/write.hpp>
 
@@ -7,46 +7,46 @@
 
 namespace boost_asio_tcp_echo
 {
-namespace client
+namespace server
 {
 
-WriteCommand::WriteCommand(
+ResponseCommand::ResponseCommand(
         boost::asio::io_context &ioContext,
         std::shared_ptr<Settings> settings,
         std::shared_ptr<boost::asio::ip::tcp::socket> socket,
-        std::string body)
+        std::string responseBody)
         : ioContext_(ioContext),
           settings_(std::move(settings)),
           socket_(std::move(socket)),
-          body_(std::move(body))
+          responseBody_(std::move(responseBody))
 {
 
 }
 
-WriteCommand::~WriteCommand()
+ResponseCommand::~ResponseCommand()
 {
 
 }
 
-void WriteCommand::run(
+void ResponseCommand::run(
         std::function<void(std::shared_ptr<boost::asio::ip::tcp::socket>)> callback)
 {
     auto self = this->shared_from_this();
     auto deadLineTimer = std::make_shared<boost::asio::steady_timer>(this->ioContext_);
 
-    deadLineTimer->expires_after(this->settings_->getWriteTimeout());
+    deadLineTimer->expires_after(this->settings_->getResponseWriteTimeout());
     deadLineTimer->async_wait(
-            std::bind(&WriteCommand::handleTimeout, self, this->socket_, deadLineTimer,
+            std::bind(&ResponseCommand::handleTimeout, self, this->socket_, deadLineTimer,
                       std::placeholders::_1));
 
     boost::asio::async_write(
-            *(this->socket_), boost::asio::buffer(this->body_),
-            std::bind(&WriteCommand::handleWrite, self, std::move(callback),
+            *(this->socket_), boost::asio::buffer(this->responseBody_),
+            std::bind(&ResponseCommand::handleWrite, self, std::move(callback),
                       this->socket_, deadLineTimer, std::placeholders::_1,
                       std::placeholders::_2));
 }
 
-void WriteCommand::handleTimeout(
+void ResponseCommand::handleTimeout(
         const std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
@@ -56,11 +56,11 @@ void WriteCommand::handleTimeout(
     }
 
     if (ec) {
-        std::cout << "WriteCommand::handleTimeout: " << ec.message() << std::endl;
+        std::cout << "ResponseCommand::handleTimeout: " << ec.message() << std::endl;
     }
 }
 
-void WriteCommand::handleWrite(
+void ResponseCommand::handleWrite(
         std::function<void(std::shared_ptr<boost::asio::ip::tcp::socket>)> callback,
         std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
@@ -68,7 +68,7 @@ void WriteCommand::handleWrite(
         std::size_t /* bytesTransferred */)
 {
     if (ec) {
-        std::cout << "WriteCommand::handleWrite: " << ec.message() << std::endl;
+        std::cout << "ResponseCommand::handleWrite: " << ec.message() << std::endl;
 
         return;
     }
@@ -80,5 +80,5 @@ void WriteCommand::handleWrite(
     callback(std::move(socket));
 }
 
+} // namespace server
 } // namespace boost_asio_tcp_echo
-} // namespace client
