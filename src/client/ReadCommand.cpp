@@ -42,7 +42,8 @@ void ReadCommand::run(
             std::bind(&ReadCommand::handleTimeout, self, this->socket_, deadLineTimer,
                       std::placeholders::_1));
 
-    boost::asio::async_read(*(this->socket_), *receiveBuffer, boost::asio::transfer_at_least(1),
+    boost::asio::async_read(*(this->socket_), receiveBuffer->prepare(2 * 1'024 * 1'024),
+            boost::asio::transfer_at_least(1),
             std::bind(&ReadCommand::handleRead, self, std::move(callback),
                      this->socket_, deadLineTimer, receiveBuffer,
                      std::placeholders::_1, std::placeholders::_2));
@@ -75,7 +76,7 @@ void ReadCommand::handleRead(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         std::shared_ptr<boost::asio::streambuf> receiveBuffer,
         const boost::system::error_code &ec,
-        std::size_t /* bytesReceived */)
+        std::size_t bytesReceived)
 {
     if (ec == boost::asio::error::connection_reset) {
         std::cout << "ReadCommand::handleRead connection reset: " << ec.message() << std::endl;
@@ -92,6 +93,7 @@ void ReadCommand::handleRead(
             boost::asio::steady_timer::time_point::max());
     deadLineTimer->cancel();
 
+    receiveBuffer->commit(bytesReceived);
     std::string response(
             (std::istreambuf_iterator<char>(receiveBuffer.get())),
             std::istreambuf_iterator<char>());
