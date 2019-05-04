@@ -75,7 +75,7 @@ void ReceiveCommand::handleRead(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         std::shared_ptr<boost::asio::streambuf> receiveBuffer,
         const boost::system::error_code &ec,
-        std::size_t  bytesReceived)
+        std::size_t bytesReceived)
 {
     if (ec && ec != boost::asio::error::eof) {
         std::cout << "ReceiveCommand::handleRead: " << ec.message() << std::endl;
