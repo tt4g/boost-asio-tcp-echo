@@ -77,7 +77,7 @@ void ReceiveCommand::handleRead(
         const boost::system::error_code &ec,
         std::size_t  bytesReceived)
 {
-    if (ec != boost::asio::error::eof && ec) {
+    if (ec && ec != boost::asio::error::eof) {
         std::cout << "ReceiveCommand::handleRead: " << ec.message() << std::endl;
 
         return;

@@ -83,7 +83,7 @@ void ReadCommand::handleRead(
         return;
     }
 
-    if (ec != boost::asio::error::eof && ec) {
+    if (ec && ec != boost::asio::error::eof) {
         std::cout << "ReadCommand::handleRead: " << ec.message() << std::endl;
 
         return;
