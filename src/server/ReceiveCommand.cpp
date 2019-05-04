@@ -83,6 +83,29 @@ void ReceiveCommand::handleRead(
         return;
     }
 
+    // If read unknown size,
+    // call `boost::asio::async_read<AsyncReadStream, MutableBufferSequence, ReadHandler>` repeatedly.
+    // but will not call `ReadHandler` when use `boost::asio::transfer_at_least(1)`
+    // and no more data exists.
+    // So, if there is no data in the cancellation process by `boost::asio::steady_time`,
+    // it is necessary to be ready to restore the process.
+    // By the way, if use `boost::asio::transfer_at_least(0)`,
+    // `ReadHandler` will be called immediately without reading the data.
+//     if (bytesReceived > 0) {
+//         receiveBuffer->commit(bytesReceived);
+//         // consume and store receive data.
+//         std::string requestBody(
+//                 (std::istreambuf_iterator<char>(receiveBuffer.get())),
+//                 std::istreambuf_iterator<char>());
+//
+//         boost::asio::async_read(*(this->socket_), receiveBuffer->prepare(2 * 1'024 * 1'024),
+//                 boost::asio::transfer_at_least(1),
+//                 std::bind(&ReceiveCommand::handleRead, this->shared_from_this(), std::move(callback),
+//                         this->socket_, deadLineTimer, receiveBuffer,
+//                         std::placeholders::_1, std::placeholders::_2));
+//         return;
+//     }
+
     deadLineTimer->expires_at(
             boost::asio::steady_timer::time_point::max());
     deadLineTimer->cancel();
