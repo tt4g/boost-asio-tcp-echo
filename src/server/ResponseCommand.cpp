@@ -51,19 +51,22 @@ void ResponseCommand::handleTimeout(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
 {
-    if (ec == boost::asio::error::operation_aborted) {
+    if (ec == boost::asio::error::operation_aborted
+            || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
+
         // Timer canceled
         return;
     }
 
-    if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
-        boost::system::error_code cancelEc;
-        socket->cancel(cancelEc);
+    if (ec) {
+        // another error.
+        std::cout << "ResponseCommand::handleTimeout: " << ec.message() << std::endl;
+
+        return;
     }
 
-    if (ec) {
-        std::cout << "ResponseCommand::handleTimeout: " << ec.message() << std::endl;
-    }
+    boost::system::error_code cancelEc;
+    socket->cancel(cancelEc);
 }
 
 void ResponseCommand::handleWrite(

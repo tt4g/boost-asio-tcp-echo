@@ -45,11 +45,6 @@ void ResolveCommand::handleTimeout(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
 {
-    if (ec == boost::asio::error::operation_aborted) {
-        // Timer canceled
-        return;
-    }
-
     // There are times when timer cancellation does not make sense.
     // That's when function call task is already queued.
     // Workaround: double check "why call this function reason" ?
@@ -58,13 +53,21 @@ void ResolveCommand::handleTimeout(
     //
     // 2. expire timer.
     //  If it is canceled after being added to the task queue, `expiry` is a future time.
-    if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
-        resolver->cancel();
+    if (ec == boost::asio::error::operation_aborted
+            || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
+
+        // Timer canceled
+        return;
     }
 
     if (ec) {
+        // another error.
         std::cout << "ResolveCommand::handleTimeout: " << ec.message() << std::endl;
+
+        return;
     }
+
+    resolver->cancel();
 }
 
 void ResolveCommand::handleResolve(
