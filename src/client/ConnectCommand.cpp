@@ -78,6 +78,12 @@ void ConnectCommand::handleConnect(
         const boost::asio::ip::tcp::endpoint &/* endpoint */)
 {
     if (ec) {
+        if (ec == boost::asio::error::operation_aborted) {
+            // ec is boost::asio::error::operation_aborted
+            // when operation canceled by handleTimeout or socket closed.
+            return;
+        }
+
         std::cout << "ConnectCommand::handleConnect: " << ec.message() << std::endl;
 
         return;

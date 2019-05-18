@@ -77,6 +77,12 @@ void ResolveCommand::handleResolve(
         boost::asio::ip::tcp::resolver::results_type endpoints)
 {
     if (ec) {
+        if (ec == boost::asio::error::operation_aborted) {
+            // ec is boost::asio::error::operation_aborted
+            // when operation canceled by handleTimeout or socket closed.
+            return;
+        }
+
         std::cout << "ResolveCommand::handleResolve: " << ec.message() << std::endl;
 
         return;

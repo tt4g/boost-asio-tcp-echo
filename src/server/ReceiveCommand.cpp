@@ -54,22 +54,19 @@ void ReceiveCommand::handleTimeout(
         const std::shared_ptr<boost::asio::steady_timer> deadLineTimer,
         const boost::system::error_code &ec)
 {
-    if (ec == boost::asio::error::operation_aborted
-            || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
-
+    if (ec == boost::asio::error::operation_aborted) {
         // Timer canceled
         return;
     }
 
-    if (ec) {
-        // another error.
-        std::cout << "ReceiveCommand::handleTimeout: " << ec.message() << std::endl;
-
-        return;
+    if (ec || boost::asio::steady_timer::clock_type::now() < deadLineTimer->expiry()) {
+        boost::system::error_code cancelEc;
+        socket->cancel(cancelEc);
     }
 
-    boost::system::error_code cancelEc;
-    socket->cancel(cancelEc);
+    if (ec) {
+        std::cout << "ReceiveCommand::handleTimeout: " << ec.message() << std::endl;
+    }
 }
 
 void ReceiveCommand::handleRead(
@@ -80,10 +77,15 @@ void ReceiveCommand::handleRead(
         const boost::system::error_code &ec,
         std::size_t bytesReceived)
 {
-    if (ec && ec != boost::asio::error::eof) {
-        std::cout << "ReceiveCommand::handleRead: " << ec.message() << std::endl;
+    if (ec) {
+        // ec is boost::asio::error::eof if socked is closed before reading the
+        // expected amount of data.
+        if (ec != boost::asio::error::eof) {
+            // pass here: boost::asio::error::operation_aborted
+            std::cout << "ReceiveCommand::handleRead: " << ec.message() << std::endl;
 
-        return;
+            return;
+        }
     }
 
     // If read unknown size,

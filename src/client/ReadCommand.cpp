@@ -81,14 +81,21 @@ void ReadCommand::handleRead(
         const boost::system::error_code &ec,
         std::size_t bytesReceived)
 {
-    if (ec == boost::asio::error::connection_reset) {
-        std::cout << "ReadCommand::handleRead connection reset: " << ec.message() << std::endl;
-        return;
-    }
-
+    // ec is boost::asio::error::eof if socked is closed before reading the
+    // expected amount of data.
     if (ec && ec != boost::asio::error::eof) {
-        std::cout << "ReadCommand::handleRead: " << ec.message() << std::endl;
+        if (ec == boost::asio::error::operation_aborted) {
+            // ec is boost::asio::error::operation_aborted
+            // when operation canceled by handleTimeout or socket closed.
+            return;
+        }
 
+        if (ec == boost::asio::error::connection_reset) {
+            std::cout << "ReadCommand::handleRead connection reset: " << ec.message() << std::endl;
+            return;
+        }
+
+        std::cout << "ReadCommand::handleRead: " << ec.message() << std::endl;
         return;
     }
 
